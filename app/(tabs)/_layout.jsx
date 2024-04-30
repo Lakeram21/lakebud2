@@ -5,9 +5,9 @@ import Icon from 'react-native-vector-icons/FontAwesome'
 import { useGlobalContext } from "../../context/GlobalProvider";
 
 const TabsLayout = () => {
-  const { loading, isLogged } = useGlobalContext();
+  const { loading, isLogIn } = useGlobalContext();
 
-  if (!loading && isLogged) return <Redirect href="/dashboard" />;
+  if (!loading && !isLogIn) return <Redirect href="/login" />;
   return (
     <>
     <Tabs

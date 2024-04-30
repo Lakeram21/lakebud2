@@ -3,10 +3,13 @@ import {auth} from "../../API/config"
 import React, { useState } from "react";
 import { router } from "expo-router";
 import {signInUser} from "../../API/Authentication"
+import {getCurrentUser} from "../../API/user"
+import { useGlobalContext } from "../../context/GlobalProvider";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const { setUser,   setisLogIn } = useGlobalContext();
 
   const handleLogin = async () => {
     // Handle login logic here
@@ -17,9 +20,14 @@ const Login = () => {
       password
     }
     const signInStatus = await signInUser(userObject)
-    console.log(signInStatus)
+    console.log("Sign in ststus",signInStatus)
     if(signInStatus?.["sucess"]){
+      const result = await getCurrentUser();
+      console.log("result", result)
+      setUser(result)
+      setisLogIn(true)
       router.push("/dashboard")
+
     }
     else{
       Alert.alert(
