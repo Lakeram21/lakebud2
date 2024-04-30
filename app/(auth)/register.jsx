@@ -1,7 +1,7 @@
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Alert } from "react-native";
 import React, { useState } from "react";
 import { router, Link} from "expo-router";
-import {signInUser, signup} from "../API/Authentication"
+import {signInUser, signup} from "../../API/Authentication"
 const Signup = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");

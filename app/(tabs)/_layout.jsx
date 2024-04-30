@@ -2,8 +2,12 @@ import { View, Text } from "react-native";
 import React from "react";
 import {Tabs, Redirect} from 'expo-router'
 import Icon from 'react-native-vector-icons/FontAwesome'
+import { useGlobalContext } from "../../context/GlobalProvider";
 
 const TabsLayout = () => {
+  const { loading, isLogged } = useGlobalContext();
+
+  if (!loading && isLogged) return <Redirect href="/dashboard" />;
   return (
     <>
     <Tabs

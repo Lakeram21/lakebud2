@@ -8,7 +8,7 @@ export default function App() {
   const {isLoading, isLogIn} = useGlobalContext()
   console.log(isLoading, isLogIn)
 
-   if(!isLoading && isLogIn) return <Redirect href='/dashboard'/>
+  if(!isLoading && isLogIn) return <Redirect href='/dashboard'/>
   return (
 
     <View className="flex-1 items-center justify-center bg-white">

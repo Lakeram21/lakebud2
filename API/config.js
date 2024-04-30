@@ -4,8 +4,9 @@ import {getAuth, GoogleAuthProvider, initializeAuth, getReactNativePersistence} 
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import {getFirestore} from "firebase/firestore"
 
+
 const firebaseConfig = {
-  apiKey: process.env.APIKEY,
+  apiKey:process.env.APIKEY,
   authDomain: process.env.AUTHDOMAIN,
   databaseURL: process.env.DATBASEURL,
   projectId: process.env.PROJECTID,

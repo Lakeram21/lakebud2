@@ -1,11 +1,11 @@
 import { Text, View } from "react-native";
 import React from "react";
 import {Redirect, Slot, Stack} from 'expo-router'
-import GlobalProvider, { useGlobalContext } from "../context/GlobalProvider"
+import GlobalProvider from "../context/GlobalProvider"
 
 const RootLayout = () => {
 
-  // if(!isLoading && isLogIn) return <Redirect href='/home'/>
+
 
   return (
     <GlobalProvider>

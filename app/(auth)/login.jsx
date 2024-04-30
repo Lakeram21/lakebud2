@@ -1,8 +1,8 @@
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Alert } from "react-native";
-import {auth} from "../API/config"
+import {auth} from "../../API/config"
 import React, { useState } from "react";
 import { router } from "expo-router";
-import {signInUser} from "../API/Authentication"
+import {signInUser} from "../../API/Authentication"
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -19,7 +19,7 @@ const Login = () => {
     const signInStatus = await signInUser(userObject)
     console.log(signInStatus)
     if(signInStatus?.["sucess"]){
-      router.push("/home")
+      router.push("/dashboard")
     }
     else{
       Alert.alert(
