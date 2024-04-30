@@ -10,7 +10,7 @@ const CreateBudget = () => {
   
   const [expenses, setExpenses] = useState([]);
   const [expenseCategory, setExpenseCategory] = useState("");
-  const [expense, setExpense] = useState("");
+  const [expense, setExpense] = useState("")
 
   const [incomeModalVisible, setIncomeModalVisible] = useState(false);
   const [expenseModalVisible, setExpenseModalVisible] = useState(false);
