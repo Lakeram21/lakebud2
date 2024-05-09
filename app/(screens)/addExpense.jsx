@@ -13,7 +13,7 @@ const AddExpense = () => {
     // Handle form submission here
     console.log("Submitted:", { item, amount, merchant, category });
     // You can add further processing here, such as sending data to a server
-    router.push("/home")
+    router.push("/dashboard")
   };
 
   return (

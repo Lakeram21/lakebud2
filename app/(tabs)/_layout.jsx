@@ -62,6 +62,28 @@ const TabsLayout = () => {
         )
       }}
       />
+       <Tabs.Screen
+      name="createBudget"
+      options={{
+        title:"CreateBudget",
+        headerShown:false,
+        tabBarIcon:({color, focus})=>(
+          <Icon name="money" size={28} color='#FFF'/>
+        ),
+        href:null
+      }}
+      />
+      <Tabs.Screen
+      name="viewBudget"
+      options={{
+        title:"viewbudget",
+        headerShown:false,
+        tabBarIcon:({color, focus})=>(
+          <Icon name="money" size={28} color='#FFF'/>
+        ),
+        href:null
+      }}
+      />
     </Tabs>
     </>
   );
