@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Alert } from "react-native";
 import React, { useEffect, useState, useCallback} from "react";
 import {useLocalSearchParams, useFocusEffect} from "expo-router"
 import {getBudgetById, updateBudget, getCurrentBudget} from "../../API/budget"
@@ -12,22 +12,22 @@ const viewBudget = () => {
   const [endDate, setendDate] = useState(null);
   const [currentStatus, setcurrentStatus] = useState(null);
   const [currentBudget, setCurrentBudget] = useState(null)
-  
-  
-  
+    
   const params = useLocalSearchParams()
-  const {id} = params;
- 
+  console.log(params, params.id)
+
   const setAsCurrentBudgetHandler = async()=>{
     try{
         let status = "Active"
         // Check if this is the same budget as the current
         const currentBudget = await getCurrentBudget("Active")
-        if(currentBudget?.id != budget?.id){
+        if(currentBudget?.id !== budget?.id){
           const result = await updateBudget(budget?.id, {status:status} )
-          console.log(result)
+          // set the previous active to pending
+          const result2 = await updateBudget(currentBudget?.id, {status:"pending"} )
           if(result["success"]){
             console.log("success")
+            Alert.alert("Success", "All expense entered will now be added to this budget")
           }
           else{
             console.log("Fail")
@@ -45,9 +45,8 @@ const viewBudget = () => {
 
    useFocusEffect(
         React.useCallback(() => {
-          if(id){
-            console.log("Here", id)
-            getBudgetById(id)
+          if(params.id){
+            getBudgetById(params.id)
             .then((res)=>{
               setbudget(res)
               let endDate = res?.endDate
@@ -57,7 +56,6 @@ const viewBudget = () => {
               let startDate = res?.startDate
               startDate = formatDate(startDate)
               setstartDate(startDate)
-
               setcurrentStatus(res?.status)
 
             }).catch((err)=>{
@@ -68,32 +66,10 @@ const viewBudget = () => {
           return () => {
             console.log('Screen is unfocused');
           };
-        }, [])
+        }, [params.id])
       );
   
-  // useFocusEffect(()=>{
-    
-  //   if(id){
-  //     console.log("Here", id)
-  //     getBudgetById(id)
-  //     .then((res)=>{
-  //       setbudget(res)
-  //       let endDate = res?.endDate
-  //       endDate = formatDate(endDate)
-  //       setendDate(endDate)
-
-  //       let startDate = res?.startDate
-  //       startDate = formatDate(startDate)
-  //       setstartDate(startDate)
-
-  //       setcurrentStatus(res?.status)
-
-  //     }).catch((err)=>{
-  //       console.log(err)
-  //     })
-  //   }
-   
-  // }, [])
+  
   return (
     <SafeAreaView>
       <View>

@@ -11,7 +11,6 @@ const BudgetList = () => {
         const res = await getAllBudgets();
         if (res.success) {
           setAllBudgets(res.success);
-          console.log(res.success);
         } else {
           Alert.alert("Failed to get all Budgets. Check Network");
         }

@@ -30,3 +30,26 @@ export const createExpense = async (data) => {
       return err;
     }
   };
+
+
+  export const getActualExpense = async (id)=>{
+  const userQuery = query(collectionRef, where("budgetId", "==", id));
+
+  try {
+    // Get the documents that match the query
+    const querySnapshot = await getDocs(userQuery);
+
+    // Check if there are matching documents
+    if (querySnapshot.empty) {
+      console.log('No matching documents.');
+      return null;
+    }
+    const result = querySnapshot.docs.map((doc)=>({...doc.data(), id:doc.id}));
+    
+    return result[0]; 
+
+} catch (error) {
+  console.error("Error getting budget by id:", error);
+  throw error;
+}
+}

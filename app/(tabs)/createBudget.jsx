@@ -125,8 +125,7 @@ const CreateBudget = () => {
         unbudgetedAmount: unbudgetedAmount
       }
 
-      
-
+    
       try{
         const result = await createBudget(budgetObject)
         // We create the actual spending with the budget so that we can keep track 
@@ -152,10 +151,11 @@ const CreateBudget = () => {
         }
 
         let modifiedExpenses = expenses.map(expense=>{
-          const modifiedExpense = {...expense, ...additionalproperties, ...outSideExpense}
+          const modifiedExpense = {...expense, ...additionalproperties}
           return modifiedExpense
 
         })
+        modifiedExpenses = [...modifiedExpenses, outSideExpense]
 
         const actualExpenseObject ={
           startDate,
