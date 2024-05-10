@@ -2,6 +2,7 @@ import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Alert } from "re
 import React, { useState } from "react";
 import { router, Link} from "expo-router";
 import {signInUser, signup} from "../../API/Authentication"
+
 const Signup = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -67,7 +68,12 @@ const Signup = () => {
             <Text className="text-white text-center">Sign Up</Text>
           </TouchableOpacity>
         </View>
-        <Link href="/login">Link to tab</Link>
+        <TouchableOpacity
+        onPress={()=>router.push("/login")}
+        >
+              <Text>Back to Login</Text>
+        </TouchableOpacity>
+    
       </View>
     </SafeAreaView>
   );

@@ -27,7 +27,9 @@ const CreateExpense = () => {
   };
 
   const handleExpenseAdder = async()=>{
+    try{
     let categoryRemainingAmount = parseFloat(currentCategoryAmount) - parseFloat(amount)
+    console.log("Here", category)
     budget?.expense.map((element)=>{
       if(category && category != "Other"){
         if(element?.category === category){
@@ -43,7 +45,7 @@ const CreateExpense = () => {
           console.log(element)
         }
       }
-      if (category && category === "Other"){
+      if (category && category === "Other" && element.outSideExpenses){
         element.outSideExpenses.push(
           {
               merchant,
@@ -54,12 +56,17 @@ const CreateExpense = () => {
       }})
 
     const result = await updateExpense(budget.id, budget)
+    console.log(result)
     if(result.success){
       setAmount(null)
       setName(null)
       setCategory(null)
       setmerchant(null)
       Alert.alert("Success", "Your Expense has been added to the current Budget")
+    }
+    }
+    catch(err){
+      console.log(err)
     }
   }
 
@@ -95,7 +102,6 @@ const CreateExpense = () => {
     <SafeAreaView className="flex-1">
       <View className="p-4">
         <Text className="text-lg font-bold mb-4">Add Expense</Text>
-        
         <View className="mb-4">
           <TextInput
             className="border border-gray-600 mb-2 p-2 rounded"
@@ -115,25 +121,25 @@ const CreateExpense = () => {
           <View  className="border border-gray-600 mb-2 p-2 rounded">
          
             <RNPickerSelect
-              placeholder={placeholder}
-              items={[
-                { label: "Other", value: "Other" },
-                ...(budgetCategories?.map((item) => ({
-                  label: item?.category,
-                  value: item?.category
-                })) || [])
-              ]}
-              onValueChange={(value) => {
-                setCategory(value)
-                let category = budgetCategories.filter((item)=>item.category === value)
-                if(category[0])
-                {
-                  setcurrentCategoryAmount(category[0]?.amount)
-                }
-               
-              }}
-              value={category}
-            />
+                placeholder={placeholder}
+                items={[
+                  { label: "Other", value: "Other", key: "Other" }, // Adding key for the "Other" option
+                  ...(budgetCategories?.filter(item => item.category).map((item, index) => ({
+                    label: item?.category,
+                    value: item?.category,
+                    key: `category_${index}` // Adding key for each budget category
+                  })) || [])
+                ]}
+                onValueChange={(value) => {
+                  setCategory(value);
+                  let category_ = budgetCategories.find((item) => item.category === value);
+                  if (category_) {
+                    setcurrentCategoryAmount(category.amount);
+                  }
+                  console.log(category_)
+                }}
+                value={category}
+              />
            
           </View>
            {currentCategoryAmount === null ? null :<Text>The Current amount is: ${currentCategoryAmount}. Not including the current Expense</Text>}
