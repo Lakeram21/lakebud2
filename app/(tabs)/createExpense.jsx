@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import RNPickerSelect from 'react-native-picker-select';
 import { useFocusEffect } from "expo-router";
 import { getCurrentBudget } from "../../API/budget";
-import {getActualExpense} from "../../API/expense"
+import {getActualExpense, updateExpense} from "../../API/expense"
 
 const CreateExpense = () => {
   const [amount, setAmount] = useState(null);
@@ -28,22 +28,39 @@ const CreateExpense = () => {
 
   const handleExpenseAdder = async()=>{
     let categoryRemainingAmount = parseFloat(currentCategoryAmount) - parseFloat(amount)
-    console.log(budget)
-    const updatedbudget = budget?.expense.map((element)=>{
-      if(element?.category === category){
-        console.log(element)
-        element.amount = categoryRemainingAmount
-        element.items.push(
+    budget?.expense.map((element)=>{
+      if(category && category != "Other"){
+        if(element?.category === category){
+          console.log(element)
+          element.amount = categoryRemainingAmount
+          element.items.push(
+            {
+              merchant,
+              name,
+              amount
+            }
+          )
+          console.log(element)
+        }
+      }
+      if (category && category === "Other"){
+        element.outSideExpenses.push(
           {
-            merchant,
-            name,
-            amount
+              merchant,
+              name,
+              amount
           }
         )
-        console.log(element)
-      }
-    })
-    
+      }})
+
+    const result = await updateExpense(budget.id, budget)
+    if(result.success){
+      setAmount(null)
+      setName(null)
+      setCategory(null)
+      setmerchant(null)
+      Alert.alert("Success", "Your Expense has been added to the current Budget")
+    }
   }
 
   useFocusEffect(
@@ -65,6 +82,14 @@ const CreateExpense = () => {
       };
     }, [])
   );
+
+  useFocusEffect(
+    React.useCallback(()=>{
+      return ()=>{
+
+      }
+    },[amount])
+  )
     
   return (
     <SafeAreaView className="flex-1">
@@ -77,6 +102,7 @@ const CreateExpense = () => {
             placeholder="Name of Item"
             placeholderTextColor="gray"
             onChangeText={text=>setName(text)}
+            value={name}
           />
           <TextInput
             className="border border-gray-600 mb-2 p-2 rounded"
@@ -84,10 +110,11 @@ const CreateExpense = () => {
             keyboardType="numeric"
             placeholderTextColor="gray"
             onChangeText={text=>setAmount(text)}
+            value={amount}
           />
           <View  className="border border-gray-600 mb-2 p-2 rounded">
+         
             <RNPickerSelect
-             
               placeholder={placeholder}
               items={[
                 { label: "Other", value: "Other" },
@@ -109,7 +136,7 @@ const CreateExpense = () => {
             />
            
           </View>
-           {currentCategoryAmount&&<Text>The Current amount is: ${currentCategoryAmount}. Not including the current Expense</Text>}
+           {currentCategoryAmount === null ? null :<Text>The Current amount is: ${currentCategoryAmount}. Not including the current Expense</Text>}
         </View>
 
         <TextInput
@@ -117,6 +144,7 @@ const CreateExpense = () => {
           placeholder="Merchant"
           placeholderTextColor="gray"
           onChangeText={text=>setmerchant(text)}
+          value={merchant}
         />
 
         <TouchableOpacity

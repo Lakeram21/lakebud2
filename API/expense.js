@@ -32,7 +32,7 @@ export const createExpense = async (data) => {
   };
 
 
-  export const getActualExpense = async (id)=>{
+export const getActualExpense = async (id)=>{
   const userQuery = query(collectionRef, where("budgetId", "==", id));
 
   try {
@@ -53,3 +53,15 @@ export const createExpense = async (data) => {
   throw error;
 }
 }
+
+export const updateExpense = async (id, newData) => {
+  const docRef = doc(db, "expense", id);
+
+  try {
+    const result = await updateDoc(docRef, newData);
+    return {success:true}
+  } catch (error) {
+    console.error("Error updating document:", error);
+    return error
+  }
+};

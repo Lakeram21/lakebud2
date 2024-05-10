@@ -132,22 +132,10 @@ const CreateBudget = () => {
         // from the start
         const newBudgetId = result.success.id
         const additionalproperties = {
-          items:[
-            {
-              name:"",
-              merchant: "",
-              price:""
-            }
-          ]
+          items:[]
         }
         const outSideExpense = {
-          outSideExpenses:[
-            {
-              name:"",
-              merchant: "",
-              price: ""
-            }
-          ]
+          outSideExpenses:[]
         }
 
         let modifiedExpenses = expenses.map(expense=>{
