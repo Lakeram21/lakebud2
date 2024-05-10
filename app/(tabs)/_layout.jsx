@@ -1,13 +1,36 @@
+import React, { useEffect, useState } from "react";
 import { View, Text } from "react-native";
-import React from "react";
-import {Tabs, Redirect} from 'expo-router'
-import Icon from 'react-native-vector-icons/FontAwesome'
+import { Tabs } from 'expo-router'; // Assuming this is a custom router component
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { useNavigation } from '@react-navigation/native'; // Import navigation hook from React Navigation
 import { useGlobalContext } from "../../context/GlobalProvider";
+import 'react-native-reanimated'
 
 const TabsLayout = () => {
   const { loading, isLogIn } = useGlobalContext();
+  const navigation = useNavigation(); // Hook for accessing navigation object
+  const [error, setError] = useState(null);
 
-  if (!loading && !isLogIn) return <Redirect href="/login" />;
+  useEffect(() => {
+    setError(null); // Reset error state
+    try {
+      if (!loading && !isLogIn) {
+        navigation.navigate('Login'); // Navigate to the login screen using React Navigation
+      }
+    } catch (err) {
+      console.error("Error in TabsLayout:", err);
+      setError(err); // Set error state if an error occurs
+    }
+  }, [loading, isLogIn, navigation]); // Dependencies include loading, isLogIn, and navigation
+
+  if (error) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>An error occurred: {error.message}</Text>
+        {/* Add additional error handling UI here */}
+      </View>
+    );
+  }
   return (
     <>
     <Tabs
