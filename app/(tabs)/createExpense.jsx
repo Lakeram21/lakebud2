@@ -28,6 +28,7 @@ const CreateExpense = () => {
 
   const handleExpenseAdder = async()=>{
     try{
+    console.log("this is curretn amiout: ",currentCategoryAmount)
     let categoryRemainingAmount = parseFloat(currentCategoryAmount) - parseFloat(amount)
     console.log("Here", category)
     budget?.expense.map((element)=>{
@@ -132,9 +133,10 @@ const CreateExpense = () => {
                 ]}
                 onValueChange={(value) => {
                   setCategory(value);
-                  let category_ = budgetCategories.find((item) => item.category === value);
-                  if (category_) {
-                    setcurrentCategoryAmount(category.amount);
+                  let category_ = budgetCategories.filter((item) => item.category === value);
+                  console.log("This is caaegory: ",category_)
+                  if (category_ && category_.length > 0) {
+                    setcurrentCategoryAmount(category_[0].amount);
                   }
                   console.log(category_)
                 }}
@@ -142,7 +144,7 @@ const CreateExpense = () => {
               />
            
           </View>
-           {currentCategoryAmount === null ? null :<Text>The Current amount is: ${currentCategoryAmount}. Not including the current Expense</Text>}
+           {/* {currentCategoryAmount === null ? null :<Text>The Current amount is: ${currentCategoryAmount}. Not including the current Expense</Text>} */}
         </View>
 
         <TextInput

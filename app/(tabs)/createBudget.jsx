@@ -187,34 +187,17 @@ const CreateBudget = () => {
 
   const editItem = (operation)=>{
     let type = editType
-    if(operation =="edit"){
-      if(type == "expense"){
-        expenses.map((expense)=>{
-          if(expense.id === editId){
-            expense.amount = editAmount
-            expense.category = editCategory
-          }
-          return expense
-        })
-      }
-      if(type == "income"){
-        incomes.map((income)=>{
-          if(income.id === editId){
-            income.amount = editAmount
-            income.category = editCategory
-          }
-          return income
-        })
-      }
-      if(type == "saving"){
-        savings.map((saving)=>{
-          if(saving.id === editId){
-            saving.amount = editAmount
-            saving.category = editCategory
-          }
-          return saving
-        })
-      }
+    if (operation === "edit") {
+      const targetArray = type === "expense" ? expenses :
+                        type === "income" ? incomes :
+                        type === "saving" ? savings : [];
+
+      targetArray.forEach(item => {
+        if (item.id === editId) {
+          item.amount = editAmount;
+          item.category = editCategory;
+        }
+      });
     }
     setEditModalVisible(false)
     console.log(expenses)
@@ -242,7 +225,9 @@ const CreateBudget = () => {
               <Text className="text-lg font-semibold mb-2">Budget Summary</Text>
               <Text>Total Income: ${incomes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)}</Text>
               <Text>Total Expenses: ${expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)}</Text>
-              <Text>Remaining Budget: ${incomes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - savings.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)}</Text>
+              <Text>Remaining Budget: ${
+              incomes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - savings.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)
+              }</Text>
           </View>
           <View className="mt-2 bg-blue-100 rounded-lg p-2">
               <TouchableOpacity
