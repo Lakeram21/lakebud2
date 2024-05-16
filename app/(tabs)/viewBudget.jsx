@@ -30,10 +30,12 @@ const viewBudget = () => {
             Alert.alert("Success", "All expense entered will now be added to this budget")
           }
           else{
+           
             console.log("Fail")
           }
         }
         else{
+          Alert.alert("Note", "This has already been as your Current Budget")
           console.log("Already the current budget")
         }
         
@@ -86,8 +88,8 @@ const viewBudget = () => {
           <Text className="font-bold">Category</Text>
           <Text className="font-bold">Amount</Text>
         </View>
-        {budget?.incomes.map((income)=>(
-          <View className="flex flex-row justify-evenly">
+        {budget?.incomes.map((income, index)=>(
+          <View className="flex flex-row justify-evenly" key={index}>
             <Text>{income?.category}</Text>
             <Text>{income?.amount}</Text>
           </View>
@@ -97,8 +99,8 @@ const viewBudget = () => {
           <Text className="font-bold">Category</Text>
           <Text  className="font-bold">Amount</Text>
         </View>
-        {budget?.expense.map((expense)=>(
-          <View className="flex flex-row justify-evenly">
+        {budget?.expense.map((expense, index)=>(
+          <View className="flex flex-row justify-evenly" key={index}>
             <Text>{expense?.category}</Text>
             <Text>{expense?.amount}</Text>
           </View>

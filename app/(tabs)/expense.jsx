@@ -97,12 +97,12 @@ const Expenses = () => {
             if(element.outSideExpenses){
               let outSideExpenses = element.outSideExpenses
               let price = 0
-              outSideExpenses.map((item)=>{
+              outSideExpenses.map((item, index)=>{
                 console.log(item.amount)
                 price = price + parseFloat(item.amount)
               })
               return(
-                <TouchableOpacity>
+                <TouchableOpacity key={index}>
                   <View className="flex flex-row border rounded-lg p-2">
                     <Text className="flex-1 bg-slate-300 p-4">Outside of Budget Expense:</Text>
                     <Text className="flex-1 bg-red-400 p-4 text-center text-lg">${price}</Text>

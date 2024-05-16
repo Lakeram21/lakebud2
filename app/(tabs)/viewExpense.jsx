@@ -74,20 +74,20 @@ const ViewExpense = () => {
                 <View className="flex flex-col border rounded-lg p-4">
                   <View className="flex flex-row justify-between items-center">
                     <Text className="text-lg font-bold">{element.category}</Text>
-                    <Text className="bg-green-500 rounded-full px-3 py-1 text-white">Budgeted: ${budgetCategory.amount}</Text>
+                    <Text className="bg-slate-500 rounded-full px-3 py-1 text-white">Budgeted: ${budgetCategory.amount}</Text>
                   </View>
                   <View className="flex flex-row justify-between items-center mt-2">
-                    <Text className="text-gray-500">Spent: ${budgetCategory.amount - element.amount}</Text>
+                    <Text className="bg-green-500 px-3 py-1">Spent: ${budgetCategory.amount - element.amount}</Text>
                     <Text className={`rounded-full px-3 py-1 text-white ${overspent ? 'bg-red-400' : 'bg-green-400'}`}>
                       {overspent ? 'Overspent: $' : 'Remaining: $'}{remaining}
                     </Text>
                   </View>
                 </View>
                 <View className="mt-4">
-                  <View className="flex flex-row justify-between border-b border-gray-200">
-                    <Text className="text-lg font-bold">Name</Text>
-                    <Text className="text-lg font-bold">Amount</Text>
-                    <Text className="text-lg font-bold">Merchant</Text>
+                  <View className="flex flex-row justify-between border-b border-gray-200 px-4">
+                    <Text className="text-lg font-semi-bold">Name</Text>
+                    <Text className="text-lg font-semi-bold">Amount</Text>
+                    <Text className="text-lg font-semi-bold">Merchant</Text>
                   </View>
                   {categoryExpensesData}
                 </View>
@@ -97,11 +97,26 @@ const ViewExpense = () => {
 
           if (element.outSideExpenses) {
             const price = element.outSideExpenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0);
+            const categoryExpensesData = element.outSideExpenses.map((item, idx) => (
+              <View className="flex flex-row justify-between border-b border-gray-200" key={idx}>
+                <Text className="flex-1 p-4">{item.name}</Text>
+                <Text className="flex-1 p-4">${item.amount}</Text>
+                <Text className="flex-1 p-4">{item.merchant}</Text>
+              </View>))
+
             return (
               <TouchableOpacity key={index}>
                 <View className="flex flex-row justify-between border rounded-lg p-4 bg-red-100">
                   <Text className="text-lg font-bold">Outside of Budget Expense:</Text>
                   <Text className="bg-red-400 rounded-full px-3 py-1 text-white text-lg">${price}</Text>
+                </View>
+                <View className="mt-4">
+                  <View className="flex flex-row justify-between border-b border-gray-200 px-4">
+                    <Text className="text-lg font-semi-bold">Name</Text>
+                    <Text className="text-lg font-semi-bold">Amount</Text>
+                    <Text className="text-lg font-semi-bold">Merchant</Text>
+                  </View>
+                  {categoryExpensesData}
                 </View>
               </TouchableOpacity>
             );
