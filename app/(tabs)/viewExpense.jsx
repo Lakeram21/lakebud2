@@ -33,7 +33,7 @@ const ViewExpense = () => {
               
               //set the category amount
               let categories = res.expense?.map((element)=>{
-                  if(element.amount !=""){
+                  if(element?.amount !=""){
                     return element
                   }
               })
@@ -52,7 +52,7 @@ const ViewExpense = () => {
   return (
     <SafeAreaView>
     <View>
-      <Text>All Expenses</Text>
+      <Text className="text-center">All Expenses</Text>
     </View>
     <ScrollView className="p-4">
       <View className="gap-4">
@@ -61,11 +61,11 @@ const ViewExpense = () => {
             const budgetCategory = budCategories[element.id];
             const overspent = element.Remaining < 0;
             const remaining = overspent ? - element.Remaining : element.Remaining;
-            const categoryExpensesData = element.items.map((item, idx) => (
+            const categoryExpensesData = element.items?.map((item, idx) => (
               <View className="flex flex-row justify-between border-b border-gray-200" key={idx}>
-                <Text className="flex-1 p-4">{item.name}</Text>
-                <Text className="flex-1 p-4">${item.amount}</Text>
-                <Text className="flex-1 p-4">{item.merchant}</Text>
+                <Text className="flex-1 p-4">{item?.name}</Text>
+                <Text className="flex-1 p-4">${item?.amount}</Text>
+                <Text className="flex-1 p-4">{item?.merchant}</Text>
               </View>
             ));
 
@@ -97,11 +97,11 @@ const ViewExpense = () => {
 
           if (element.outSideExpenses) {
             const price = element.outSideExpenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0);
-            const categoryExpensesData = element.outSideExpenses.map((item, idx) => (
+            const categoryExpensesData = element.outSideExpenses?.map((item, idx) => (
               <View className="flex flex-row justify-between border-b border-gray-200" key={idx}>
-                <Text className="flex-1 p-4">{item.name}</Text>
-                <Text className="flex-1 p-4">${item.amount}</Text>
-                <Text className="flex-1 p-4">{item.merchant}</Text>
+                <Text className="flex-1 p-4">{item?.name}</Text>
+                <Text className="flex-1 p-4">${item?.amount}</Text>
+                <Text className="flex-1 p-4">{item?.merchant}</Text>
               </View>))
 
             return (

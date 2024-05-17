@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal, Button, Alert} from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal, Button, Alert, KeyboardAvoidingView} from "react-native";
 import uuid from 'react-native-uuid'
 import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker"
@@ -191,86 +191,113 @@ const CreateBudget = () => {
     
   }
 
+  // This handles the edit functionality of a budget and the actual budget
   const editBudgetHandler = async()=>{
-    console.log("editing budget")
-    const unbudgetedAmount = incomes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - savings.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)
+    try {
+      console.log("editing budget")
+      const unbudgetedAmount = incomes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - savings.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)
   
-    if(isFormValid){
-      const budgetObject = {
-        incomes,
-        expense:expenses,
-        savings,
-        startDate,
-        endDate,
-        name:budgetName,
-        status: editingBudget?.status,
-        unbudgetedAmount: unbudgetedAmount
-      }
-
-      const result = await updateBudget(params?.id, budgetObject)
-
-      if(result?.success){
-
-        // Setting the values inside the actual budget
-        // since the budget changes, the actual budget needs the updated values
-        let modifiedExpenses = expenses.map(expense=>{
-
-          // check if there are new expense
-          let editingActualBudgetExpenses = editingActualBudget?.expense
-
-          let actualExpense = editingActualBudgetExpenses?.find((actual)=>{
-            // These will always have the items array
-            if(actual.id === expense.id){
-
-              actual.amount = expense.amount,
-              actual.category = expense.category
-              
-              let _spent = 0
-              actual.items?.map((item)=>{
-                _spent = _spent + parseFloat(item.amount)
-              })
-
-              let _remaining = expense.amount - _spent
-              actual.Remaining = _remaining
-              return actual
-            }
-            
-          })
-          if(actualExpense){
-            return actualExpense
-          }
-          
-          // the additionalproperties to the newly added expenses 
-          const additionalproperties = {
-            items:[]
-          }
-          expense['Remaining'] = expense.amount
-          let _modifiedExpense = {...expense, ...additionalproperties }
-          return _modifiedExpense
-          
-        })
-
-        const updatedActualExpenseObject ={
+      if(isFormValid){
+        const budgetObject = {
+          incomes,
+          expense:expenses,
+          savings,
           startDate,
           endDate,
-          savings,
-          budgetName,
-          incomes,
-          expense: modifiedExpenses,
-          unbudgetedAmount: unbudgetedAmount,
+          name:budgetName,
+          status: editingBudget?.status,
+          unbudgetedAmount: unbudgetedAmount
         }
 
-        console.log(updatedActualExpenseObject)
-        const result = await updateExpense(editingActualBudget?.id, updatedActualExpenseObject)
+        const result = await updateBudget(params?.id, budgetObject)
+
         if(result?.success){
-          Alert.alert("Success", "Budget has been adjusted. Please check your actual expense. Because these will be adjusted also.")
+
+          // Setting the values inside the actual budget
+          // since the budget changes, the actual budget needs the updated values
+          let modifiedExpenses = expenses.map(expense=>{
+            // check if there are new expense
+            let editingActualBudgetExpenses = editingActualBudget?.expense
+
+            let actualExpense = editingActualBudgetExpenses?.find((actual)=>{
+              // These will always have the items array
+              if(actual.id === expense.id){
+
+                actual.amount = expense.amount,
+                actual.category = expense.category
+                
+                let _spent = 0
+                actual.items?.map((item)=>{
+                  _spent = _spent + parseFloat(item.amount)
+                })
+
+                let _remaining = expense.amount - _spent
+                actual.Remaining = _remaining
+                return actual
+              }
+              
+            })
+            if(actualExpense){
+              return actualExpense
+            }
+            
+            // the additionalproperties to the newly added expenses 
+            const additionalproperties = {
+              items:[]
+            }
+            expense['Remaining'] = expense.amount
+            let _modifiedExpense = {...expense, ...additionalproperties }
+            return _modifiedExpense
+            
+          })
+          
+          let _outsideExpense = editingActualBudget?.expense.find(expense=>expense.outSideExpenses)
+          console.log("outside expnse: ",_outsideExpense)
+          // Add the outside expenses
+          if(_outsideExpense){
+          modifiedExpenses.push(_outsideExpense)
+          }
+          console.log
+          const updatedActualExpenseObject ={
+            startDate,
+            endDate,
+            savings,
+            budgetName,
+            incomes,
+            expense: modifiedExpenses,
+            unbudgetedAmount: unbudgetedAmount,
+          }
+
+          console.log(updatedActualExpenseObject)
+          const result = await updateExpense(editingActualBudget?.id, updatedActualExpenseObject)
+          if(result?.success)
+          {
+            Alert.alert("Success", "Budget has been adjusted. Please check your actual expense. Because these will be adjusted also.")
+            setCreateBudgetModalVisible(false)
+            router.push("/budget")
+          }
+          else
+          {
+            Alert.alert("Fail", "Fail to update budget. Check Network and try again.")
+          }
+        }
+        else
+        {
+          Alert.alert("Fail", "Fail to update budget. Check Network and try again.")
         }
 
-        
       }
-
+    } catch (err) 
+    {
+      Alert.alert("Fail", "Fail to update budget. Check Network and try again.")
     }
+    finally{
+      setCreateBudgetModalVisible(false)
+    }
+   
   }
+
+
   const editItem = (operation)=>{
     let type = editType
     if (operation === "edit") {
@@ -289,6 +316,7 @@ const CreateBudget = () => {
     console.log(expenses)
 
   }
+
   const popluateEditForm = (item, type)=>{
       setEditAmount(item.amount)
       setEditCategory(item.category)
@@ -373,255 +401,278 @@ const CreateBudget = () => {
       );
   
   return (
-    <SafeAreaView>
+    <KeyboardAvoidingView>
+      <SafeAreaView>
+        <View className="p-4 gap-2">
+          <Text className="text-lg font-semibold mb-2">Budget Summary</Text>
+          <View className="flex-row justify-between mb-2">
+            <View className="flex-shrink">
+                <Text>Total Income: ${incomes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)}</Text>
+                <Text>Total Expenses: ${expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)}</Text>
+                <Text>Remaining Budget: ${
+                incomes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - savings.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)
+                }</Text>
+            </View>
 
-      <View className="p-4">
-        <View className="bg-gray-100 rounded-lg p-4 justify-between">
-          <View>
-              <Text className="text-lg font-semibold mb-2">Budget Summary</Text>
-              <Text>Total Income: ${incomes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)}</Text>
-              <Text>Total Expenses: ${expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)}</Text>
-              <Text>Remaining Budget: ${
-              incomes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - savings.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)
-              }</Text>
-          </View>
-          <View className="mt-2 bg-blue-100 rounded-lg p-2">
-              <TouchableOpacity
-                className="text-center"
-                onPress={() => setCreateBudgetModalVisible(true)}
-              >
-                {
-                  editMode ? <Text className="text-2xl text-blue font-bold">Modify Budget</Text>:<Text className="text-2xl text-blue font-bold">Create Budget</Text>
-                }
-                  
-              </TouchableOpacity>
-          </View>
-          <View className="flex-row justify-between">
-            <TouchableOpacity
-              className="h-10 bg-blue-500 rounded items-center justify-center"
-              onPress={() => setIncomeModalVisible(true)}
-            >
-              <Text className="text-white">Add Income</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="h-10 bg-blue-500 rounded items-center justify-center"
-              onPress={() => setExpenseModalVisible(true)}
-            >
-              <Text className="text-white">Add Expense</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="h-10 bg-blue-500 rounded items-center justify-center"
-              onPress={() => setSavingsModalVisible(true)}
-            >
-              <Text className="text-white">Add Savings</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <View className="bg-gray-100 rounded-lg p-4 mt-4">
-          <Text className="text-lg font-semibold mb-2">Savings</Text>
-          {savings.map((saving, index) => (
-            <TouchableOpacity
-             onPress={()=>popluateEditForm(saving, "saving")}
-              key={index}
-            ><View key={index} className="flex flex-row justify-between border-b border-gray-300">
-                <Text>{saving.category}</Text>
-                <Text>${saving.amount}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-          <Text className="text-lg font-semibold mb-2">Income</Text>
-          {incomes.map((income, index) => (
-            <TouchableOpacity 
-              onPress={()=>popluateEditForm(income, "income")}
-              key={index}
-            >
-               <View key={index} className="flex flex-row justify-between border-b border-gray-300">
-                <Text>{income.category}</Text>
-                <Text>${income.amount}</Text>
-              </View>
-            </TouchableOpacity>
-           
-          ))}
+            
           
-          <Text className="text-lg font-semibold mb-2">Expenses</Text>
-          {expenses.map((expense, index) => (
-            <TouchableOpacity
-              onPress={()=>popluateEditForm(expense, "expense")}
-              key={index}
-            >
-              <View key={index} className="flex flex-row justify-between border-b border-gray-300">
-                <Text>{expense.category}</Text>
-                <Text>${expense.amount}</Text>
-              </View>
-            </TouchableOpacity> 
-          ))} 
-          
-        </View>
+          </View>
 
-        {/* Create Budget model */}
-         <Modal
-          animationType="slide"
-          transparent={true}
-          visible={creatBudgetModalVisible}
-          onRequestClose={() => setCreateBudgetModalVisible(false)}
-        >
-          <View className="flex flex-1 justify-center items-center">
-            <View className="bg-gray-300 p-4 rounded-lg w-4/5">
-              <TextInput
-                className="border border-gray-600 mb-4 p-2 rounded"
-                placeholder="Give your Budget a Name"
-                onChangeText={text => setBudgetName(text)}
-                value={budgetName}
-                placeholderTextColor="gray"
-              />
-              <Text className="border border-gray-600 mb-4 p-2 rounded">Start Date: <DateTimePicker 
-              mode="date" 
-              value={startDate} 
-              minimumDate={new Date(2000, 0, 1)}
-              onChange={(event, selectedDate)=>{
-                setstartDate(selectedDate)
-              }}
-              /></Text>
-              <Text className="border border-gray-600 mb-4 p-2 rounded">End Date: <DateTimePicker
-              mode="date" 
-              value={endDate}  
-              minimumDate={new Date(2000, 0, 1)}
-              onChange={(event, selectedDate)=>{
-                setEndDate(selectedDate);
-              }}
-              /></Text>
-
-              <Button title={editMode?"Update Budget":"Create Budget"} onPress={()=>{
-                if(editMode){
-                  editBudgetHandler()
-                }
-                else{
-                  createBudgetHandler()
-                }
-              }} />
-              <Button title="Close" onPress={() => setCreateBudgetModalVisible(false)} />
+          <View className="flex flex-row gap-2">
+            <View className="px-2 bg-green-600 rounded-md  items-center justify-center">
+                <TouchableOpacity
+                  className=""
+                  onPress={() => setCreateBudgetModalVisible(true)}
+                >
+                  {
+                    editMode ? <Text className="text-white text-xl text-blue font-bold">Modify Budget</Text>:<Text className="text-white text-xl text-blue font-bold">Create Budget</Text>
+                  }
+                    
+                </TouchableOpacity>
+            </View>
+            <View className="gap-2 flex-1">
+                   <TouchableOpacity
+                      className="py-2 bg-green-500 rounded items-center justify-center"
+                      onPress={() => setIncomeModalVisible(true)}
+                    >
+                      <Text className="text-white">Add Income</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      className="py-2 bg-green-500 rounded items-center justify-center"
+                      onPress={() => setExpenseModalVisible(true)}
+                    >
+                      <Text className="text-white">Add Expense</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      className="py-2 bg-green-500 rounded items-center justify-center"
+                      onPress={() => setSavingsModalVisible(true)}
+                    >
+                      <Text className="text-white">Add Savings</Text>
+                    </TouchableOpacity>
             </View>
           </View>
-        </Modal>
 
-        {/* Income Modal */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={incomeModalVisible}
-          onRequestClose={() => setIncomeModalVisible(false)}
-        >
-          <View className="flex flex-1 justify-center items-center">
-            <View className="bg-gray-300 p-4 rounded-lg w-4/5">
-              <TextInput
-                className="border border-gray-600 mb-4 p-2 rounded"
-                placeholder="Enter income category"
-                onChangeText={text => setCategory(text)}
-                value={category}
-              />
-              <TextInput
-                className="border border-gray-600 mb-4 p-2 rounded"
-                placeholder="Enter income amount"
-                keyboardType='numeric'
-                onChangeText={text => setAmount(text)}
-                value={amount}
-              />
-              <Button title="Add Income" onPress={addIncome} />
-              <Button title="Close" onPress={() => setIncomeModalVisible(false)} />
-            </View>
-          </View>
-        </Modal>
-
-        {/* Expense Modal */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={expenseModalVisible}
-          onRequestClose={() => setExpenseModalVisible(false)}
-        >
-          <View className="flex flex-1 justify-center items-center">
-            <View className="bg-gray-300 p-4 rounded-lg w-4/5">
-              <TextInput
-                className="border border-gray-600 mb-4 p-2 rounded"
-                placeholder="Enter expense category"
-                onChangeText={text => setCategory(text)}
-                value={category}
-              />
-              <TextInput
-                className="border border-gray-600 mb-4 p-2 rounded"
-                placeholder="Enter expense amount"
-                keyboardType='numeric'
-                onChangeText={text => setAmount(text)}
-                value={amount}
-              />
-              <Button title="Add Expense" onPress={addExpense} />
-              <Button title="Close" onPress={() => setExpenseModalVisible(false)} />
-            </View>
-          </View>
-        </Modal>
-
-        {/* Savings Modal */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={savingsModalVisible}
-          onRequestClose={() => setSavingsModalVisible(false)}
-        >
-          <View className="flex flex-1 justify-center items-center">
-            <View className="bg-gray-300 p-4 rounded-lg w-4/5">
-              <TextInput
-                className="border border-gray-600 mb-4 p-2 rounded"
-                placeholder="Enter Saving Category"
-                onChangeText={text => setCategory(text)}
-                value={category}
-              />
-              <TextInput
-                className="border border-gray-600 mb-4 p-2 rounded"
-                placeholder="Enter Saving amount"
-                keyboardType='numeric'
-                onChangeText={text => setAmount(text)}
-                value={amount}
-              />
-              <Button title="Add Saving" onPress={addSavings} />
-              <Button title="Close" onPress={() => setSavingsModalVisible(false)} />
-            </View>
-          </View>
-        </Modal>
-
-        {/* Edit Modal */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={editModalVisible}
-          onRequestClose={() => setEditModalVisible(false)}
-        >
-          <View className="flex flex-1 justify-center items-center">
-            <View className="bg-gray-300 p-4 rounded-lg w-4/5">
-              <TextInput
-                className="border border-gray-600 mb-4 p-2 rounded"
-                placeholder="Enter Saving Category"
-                onChangeText={text => setEditCategory(text)}
-                value={editCategory}
-              />
-              <TextInput
-                className="border border-gray-600 mb-4 p-2 rounded"
-                placeholder="Enter Saving amount"
-                keyboardType='numeric'
-                onChangeText={text => setEditAmount(text)}
-                value={editAmount}
-              />
-              <View className="flex flex-row justify-evenly">
-                <Button title="Change" onPress={()=>editItem("edit")}/>
-                <Button title="Remove" onPress={() => setEditModalVisible(false)} />
-                <Button title="Close" onPress={() => setEditModalVisible(false)} />
-              </View>
+       
+          <View className="border rounded-md p-4">
+              <Text className="text-left mb-4 font-semibold">Savings</Text>
+              <ScrollView>
+                  {savings.map((saving, index) => (
+                  <TouchableOpacity
+                  onPress={()=>popluateEditForm(saving, "saving")}
+                    key={index}
+                  ><View key={index} className="flex flex-row justify-between border-b border-gray-300 p-2">
+                      <Text>{saving.category}</Text>
+                      <Text>${saving.amount}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
               
-            </View>
           </View>
-        </Modal>
 
-      </View>
-    </SafeAreaView>
+          <View className='border rounded-md p-4'>
+            <Text className="text-left mb-4 font-semibold">Income</Text>
+            <ScrollView>
+                {incomes.map((income, index) => (
+                  <TouchableOpacity 
+                    onPress={()=>popluateEditForm(income, "income")}
+                    key={index}
+                  >
+                    <View key={index} className="flex flex-row justify-between border-b border-gray-300 p-2">
+                      <Text>{income.category}</Text>
+                      <Text>${income.amount}</Text>
+                    </View>
+                  </TouchableOpacity>
+                
+                ))} 
+            </ScrollView>
+          </View>
+
+          <View className='border rounded-md p-4'>
+            <Text className="text-left mb-4 font-semibold">Expenses</Text>
+            <ScrollView>
+              {expenses.map((expense, index) => (
+                <TouchableOpacity
+                  onPress={()=>popluateEditForm(expense, "expense")}
+                  key={index}
+                >
+                  <View key={index} className="flex flex-row justify-between border-b border-gray-300 p-2">
+                    <Text>{expense.category}</Text>
+                    <Text>${expense.amount}</Text>
+                  </View>
+                </TouchableOpacity> 
+              ))}
+            </ScrollView>
+          </View>
+           
+            
+          
+
+          {/* Create Budget model */}
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={creatBudgetModalVisible}
+            onRequestClose={() => setCreateBudgetModalVisible(false)}
+          >
+            <View className="flex flex-1 justify-center items-center">
+              <View className="bg-gray-300 p-4 rounded-lg w-4/5">
+                <TextInput
+                  className="border border-gray-600 mb-4 p-2 rounded"
+                  placeholder="Give your Budget a Name"
+                  onChangeText={text => setBudgetName(text)}
+                  value={budgetName}
+                  placeholderTextColor="gray"
+                />
+                <Text className="border border-gray-600 mb-4 p-2 rounded">Start Date: <DateTimePicker 
+                mode="date" 
+                value={startDate} 
+                minimumDate={new Date(2000, 0, 1)}
+                onChange={(event, selectedDate)=>{
+                  setstartDate(selectedDate)
+                }}
+                /></Text>
+                <Text className="border border-gray-600 mb-4 p-2 rounded">End Date: <DateTimePicker
+                mode="date" 
+                value={endDate}  
+                minimumDate={new Date(2000, 0, 1)}
+                onChange={(event, selectedDate)=>{
+                  setEndDate(selectedDate);
+                }}
+                /></Text>
+
+                <Button title={editMode?"Update Budget":"Create Budget"} onPress={()=>{
+                  if(editMode){
+                    editBudgetHandler()
+                  }
+                  else{
+                    createBudgetHandler()
+                  }
+                }} />
+                <Button title="Close" onPress={() => setCreateBudgetModalVisible(false)} />
+              </View>
+            </View>
+          </Modal>
+
+          {/* Income Modal */}
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={incomeModalVisible}
+            onRequestClose={() => setIncomeModalVisible(false)}
+          >
+            <View className="flex flex-1 justify-center items-center">
+              <View className="bg-gray-300 p-4 rounded-lg w-4/5">
+                <TextInput
+                  className="border border-gray-600 mb-4 p-2 rounded"
+                  placeholder="Enter income category"
+                  onChangeText={text => setCategory(text)}
+                  value={category}
+                />
+                <TextInput
+                  className="border border-gray-600 mb-4 p-2 rounded"
+                  placeholder="Enter income amount"
+                  keyboardType='numeric'
+                  onChangeText={text => setAmount(text)}
+                  value={amount}
+                />
+                <Button title="Add Income" onPress={addIncome} />
+                <Button title="Close" onPress={() => setIncomeModalVisible(false)} />
+              </View>
+            </View>
+          </Modal>
+
+          {/* Expense Modal */}
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={expenseModalVisible}
+            onRequestClose={() => setExpenseModalVisible(false)}
+          >
+            <View className="flex flex-1 justify-center items-center">
+              <View className="bg-gray-300 p-4 rounded-lg w-4/5">
+                <TextInput
+                  className="border border-gray-600 mb-4 p-2 rounded"
+                  placeholder="Enter expense category"
+                  onChangeText={text => setCategory(text)}
+                  value={category}
+                />
+                <TextInput
+                  className="border border-gray-600 mb-4 p-2 rounded"
+                  placeholder="Enter expense amount"
+                  keyboardType='numeric'
+                  onChangeText={text => setAmount(text)}
+                  value={amount}
+                />
+                <Button title="Add Expense" onPress={addExpense} />
+                <Button title="Close" onPress={() => setExpenseModalVisible(false)} />
+              </View>
+            </View>
+          </Modal>
+
+          {/* Savings Modal */}
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={savingsModalVisible}
+            onRequestClose={() => setSavingsModalVisible(false)}
+          >
+            <View className="flex flex-1 justify-center items-center">
+              <View className="bg-gray-300 p-4 rounded-lg w-4/5">
+                <TextInput
+                  className="border border-gray-600 mb-4 p-2 rounded"
+                  placeholder="Enter Saving Category"
+                  onChangeText={text => setCategory(text)}
+                  value={category}
+                />
+                <TextInput
+                  className="border border-gray-600 mb-4 p-2 rounded"
+                  placeholder="Enter Saving amount"
+                  keyboardType='numeric'
+                  onChangeText={text => setAmount(text)}
+                  value={amount}
+                />
+                <Button title="Add Saving" onPress={addSavings} />
+                <Button title="Close" onPress={() => setSavingsModalVisible(false)} />
+              </View>
+            </View>
+          </Modal>
+
+          {/* Edit Modal */}
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={editModalVisible}
+            onRequestClose={() => setEditModalVisible(false)}
+          >
+            <View className="flex flex-1 justify-center items-center">
+              <View className="bg-gray-300 p-4 rounded-lg w-4/5">
+                <TextInput
+                  className="border border-gray-600 mb-4 p-2 rounded"
+                  placeholder="Enter Saving Category"
+                  onChangeText={text => setEditCategory(text)}
+                  value={editCategory}
+                />
+                <TextInput
+                  className="border border-gray-600 mb-4 p-2 rounded"
+                  placeholder="Enter Saving amount"
+                  keyboardType='numeric'
+                  onChangeText={text => setEditAmount(text)}
+                  value={editAmount}
+                />
+                <View className="flex flex-row justify-evenly">
+                  <Button title="Change" onPress={()=>editItem("edit")}/>
+                  <Button title="Remove" onPress={() => setEditModalVisible(false)} />
+                  <Button title="Close" onPress={() => setEditModalVisible(false)} />
+                </View>
+                
+              </View>
+            </View>
+          </Modal>
+
+        </View>
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
 
