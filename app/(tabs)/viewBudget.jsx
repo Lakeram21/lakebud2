@@ -47,9 +47,12 @@ const viewBudget = () => {
    useFocusEffect(
         React.useCallback(() => {
           if(params.id){
+            console.log("getting the budget")
             getBudgetById(params.id)
             .then((res)=>{
               setbudget(res)
+              console.log("getting the bud")
+              console.log(res)
               let endDate = res?.endDate
               endDate = formatDate(endDate)
               setendDate(endDate)

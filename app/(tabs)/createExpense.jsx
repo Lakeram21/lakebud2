@@ -28,9 +28,7 @@ const CreateExpense = () => {
 
   const handleExpenseAdder = async()=>{
     try{
-    console.log("this is current amiout: ",currentCategoryAmount)
     let categoryRemainingAmount = parseFloat(currentCategoryAmount) - parseFloat(amount)
-    console.log("Here", category)
     budget?.expense.map((element)=>{
       if(category && category != "Other"){
         if(element?.category === category){
@@ -136,7 +134,7 @@ const CreateExpense = () => {
                   let category_ = budgetCategories.filter((item) => item.category === value);
                   console.log("This is caaegory: ",category_)
                   if (category_ && category_.length > 0) {
-                    setcurrentCategoryAmount(category_[0].amount);
+                    setcurrentCategoryAmount(category_[0].Remaining);
                   }
                   console.log(category_)
                 }}

@@ -3,8 +3,8 @@ import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal, Button, Ale
 import uuid from 'react-native-uuid'
 import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker"
-import {createBudget, getBudgetById} from "../../API/budget"
-import {createExpense} from "../../API/expense"
+import {createBudget,updateBudget, getBudgetById} from "../../API/budget"
+import {createExpense, getActualExpense, updateExpense} from "../../API/expense"
 import {router} from "expo-router"
 import {useLocalSearchParams, useFocusEffect} from "expo-router"
 
@@ -16,7 +16,8 @@ const CreateBudget = () => {
 
   // These are for modifying the current Budget
   const [editMode, seteditMode] = useState(false);
-  
+  const [editingBudget, setEditingBudget] = useState(null)
+  const [editingActualBudget, setEditingActualBudget] = useState(null)
 
   // budget varibles
   const [errors, setErrors] = useState({});
@@ -53,10 +54,8 @@ const CreateBudget = () => {
       const id = uuid.v4()
       const newIncome = { category, amount, id };
       setIncomes([...incomes, newIncome]);
-
       setAmount("");
       setCategory("");
-
       setIncomeModalVisible(false);
     }
     else{
@@ -116,6 +115,7 @@ const CreateBudget = () => {
     setErrors(errors)
     setIsFormValid(Object.keys(errors).length === 0)
   }
+  // Create Budget Handler used for new Budget creation and creation from template
   const createBudgetHandler = async()=>{
     const unbudgetedAmount = incomes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - savings.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)
   
@@ -144,7 +144,7 @@ const CreateBudget = () => {
         }
 
         let modifiedExpenses = expenses.map(expense=>{
-          expense["Remaining"] = 0
+          expense["Remaining"] = expense.amount
           const modifiedExpense = {...expense, ...additionalproperties}
           return modifiedExpense
 
@@ -191,6 +191,86 @@ const CreateBudget = () => {
     
   }
 
+  const editBudgetHandler = async()=>{
+    console.log("editing budget")
+    const unbudgetedAmount = incomes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - savings.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)
+  
+    if(isFormValid){
+      const budgetObject = {
+        incomes,
+        expense:expenses,
+        savings,
+        startDate,
+        endDate,
+        name:budgetName,
+        status: editingBudget?.status,
+        unbudgetedAmount: unbudgetedAmount
+      }
+
+      const result = await updateBudget(params?.id, budgetObject)
+
+      if(result?.success){
+
+        // Setting the values inside the actual budget
+        // since the budget changes, the actual budget needs the updated values
+        let modifiedExpenses = expenses.map(expense=>{
+
+          // check if there are new expense
+          let editingActualBudgetExpenses = editingActualBudget?.expense
+
+          let actualExpense = editingActualBudgetExpenses?.find((actual)=>{
+            // These will always have the items array
+            if(actual.id === expense.id){
+
+              actual.amount = expense.amount,
+              actual.category = expense.category
+              
+              let _spent = 0
+              actual.items?.map((item)=>{
+                _spent = _spent + parseFloat(item.amount)
+              })
+
+              let _remaining = expense.amount - _spent
+              actual.Remaining = _remaining
+              return actual
+            }
+            
+          })
+          if(actualExpense){
+            return actualExpense
+          }
+          
+          // the additionalproperties to the newly added expenses 
+          const additionalproperties = {
+            items:[]
+          }
+          expense['Remaining'] = expense.amount
+          let _modifiedExpense = {...expense, ...additionalproperties }
+          return _modifiedExpense
+          
+        })
+
+        const updatedActualExpenseObject ={
+          startDate,
+          endDate,
+          savings,
+          budgetName,
+          incomes,
+          expense: modifiedExpenses,
+          unbudgetedAmount: unbudgetedAmount,
+        }
+
+        console.log(updatedActualExpenseObject)
+        const result = await updateExpense(editingActualBudget?.id, updatedActualExpenseObject)
+        if(result?.success){
+          Alert.alert("Success", "Budget has been adjusted. Please check your actual expense. Because these will be adjusted also.")
+        }
+
+        
+      }
+
+    }
+  }
   const editItem = (operation)=>{
     let type = editType
     if (operation === "edit") {
@@ -236,20 +316,60 @@ const CreateBudget = () => {
               setIncomes(res.incomes)
               setSavings(res.savings)
               if(params?.mode == 'edit'){
+
+                  // Set the Budget that is being edited
+                  setEditingBudget(res)
+
+
+
                   seteditMode(true)
                   setBudgetName(res.name)
-                  setstartDate(res.startDate)
-                  setEndDate(res.endDate)
+                 
+                  let start = res.startDate
+                  let _startDate = new Date(start.seconds * 1000)
+                  setstartDate(_startDate)
+                  let end = res.endDate
+                  let _endDate = new Date(end.seconds *1000)
+                  setEndDate(_endDate)
+
+                  // Get actual Budget whene the expenses are stored
+                  getActualExpense(params?.id)
+                  .then((res)=>{
+                    setEditingActualBudget(res)
+                  }).catch((err)=>{
+                    console.log(err)
+                  })
+
               }
             }).catch((err)=>{
               console.log(err)
             })
           }
-         
+          else
+          {
+            seteditMode(false)
+            setEditingActualBudget(null)
+            setEditingBudget(null)
+            setErrors({})
+            setIsFormValid(false)
+
+            setEditCategory(null)
+            setEditAmount(null)
+            setEditId(null)
+            setEditType(null)
+
+            setIncomes([])
+            setExpenses([])
+            setSavings([])
+
+            setBudgetName("")
+            setEndDate(new Date())
+            setstartDate(new Date())
+          }
           return () => {
             console.log('Screen is unfocused');
           };
-        }, [params.id])
+        }, [params?.id])
       );
   
   return (
@@ -337,8 +457,8 @@ const CreateBudget = () => {
           ))} 
           
         </View>
+
         {/* Create Budget model */}
-        
          <Modal
           animationType="slide"
           transparent={true}
@@ -371,11 +491,19 @@ const CreateBudget = () => {
               }}
               /></Text>
 
-              <Button title="Create Budget" onPress={createBudgetHandler} />
+              <Button title={editMode?"Update Budget":"Create Budget"} onPress={()=>{
+                if(editMode){
+                  editBudgetHandler()
+                }
+                else{
+                  createBudgetHandler()
+                }
+              }} />
               <Button title="Close" onPress={() => setCreateBudgetModalVisible(false)} />
             </View>
           </View>
         </Modal>
+
         {/* Income Modal */}
         <Modal
           animationType="slide"
@@ -403,6 +531,7 @@ const CreateBudget = () => {
             </View>
           </View>
         </Modal>
+
         {/* Expense Modal */}
         <Modal
           animationType="slide"
@@ -430,6 +559,7 @@ const CreateBudget = () => {
             </View>
           </View>
         </Modal>
+
         {/* Savings Modal */}
         <Modal
           animationType="slide"
@@ -457,6 +587,7 @@ const CreateBudget = () => {
             </View>
           </View>
         </Modal>
+
         {/* Edit Modal */}
         <Modal
           animationType="slide"
@@ -488,6 +619,7 @@ const CreateBudget = () => {
             </View>
           </View>
         </Modal>
+
       </View>
     </SafeAreaView>
   );
