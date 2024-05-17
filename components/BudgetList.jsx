@@ -37,19 +37,16 @@ const BudgetList = () => {
         keyExtractor={(item) => item.id.toString()} 
         renderItem={({ item }) => (
           <TouchableOpacity onPress={()=>router.push({pathname:"/viewBudget", params:{id:item.id}})}>
-          <View className="flex-row border border-gray-300 gap-2 mt-4 justify-between bg-red-200">
-            <Text className="p-4">{item.name}</Text>
-           
-       
+          <View className="flex-row border border-gray-300 gap-2 mt-4 justify-between ">
+            <Text className="p-4">Name: {item.name}</Text>
+            {
+              item.status=="Active"?<Text className="p-2 border bg-green-200">Current Budget</Text>:null
+            }
           </View>
           </TouchableOpacity>
          
-        )}
-/>
+        )}/>
 
-
-  
-  );
-};
+  );};
 
 export default BudgetList;

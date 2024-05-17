@@ -1,6 +1,6 @@
-import { View, Text, TouchableOpacity, Alert } from "react-native";
+import { View, Text, TouchableOpacity, Alert, ScrollView } from "react-native";
 import React, { useEffect, useState, useCallback} from "react";
-import {useLocalSearchParams, useFocusEffect} from "expo-router"
+import {useLocalSearchParams, useFocusEffect, router} from "expo-router"
 import {getBudgetById, updateBudget, getCurrentBudget} from "../../API/budget"
 import { SafeAreaView } from "react-native-safe-area-context";
 import {formatDate} from "../../utils/dateformater"
@@ -30,7 +30,6 @@ const viewBudget = () => {
             Alert.alert("Success", "All expense entered will now be added to this budget")
           }
           else{
-           
             console.log("Fail")
           }
         }
@@ -74,37 +73,81 @@ const viewBudget = () => {
   
   return (
     <SafeAreaView>
-      <View>
+      <View className="gap-3">
         <Text className="text-center font-bold text-xl">{budget?.name}</Text>
         <View>
-          <Text>{startDate} to {endDate}</Text>
+          <Text className="text-center">Date: {startDate} to {endDate}</Text>
         </View>
-        <TouchableOpacity
-        onPress={setAsCurrentBudgetHandler}
-        ><Text className="text-right bg-slate-300 border">Set as Current Budget</Text>
-        </TouchableOpacity>
-        <Text className="text-left font-bold text-lg" >Incomes</Text>
-        <View className="flex flex-row justify-evenly">
-          <Text className="font-bold">Category</Text>
-          <Text className="font-bold">Amount</Text>
+
+        <View className= "flex flex-row justify-evenly">
+          <TouchableOpacity
+            onPress={setAsCurrentBudgetHandler}
+            className="border rounded-md bg-slate-300 px-2 py-1"
+            ><Text className="text-right">Set as Current Budget</Text>
+          </TouchableOpacity>
+           <TouchableOpacity
+            onPress={()=> router.push({pathname:"/createBudget", params:{id:budget?.id}})}
+            className="border rounded-md bg-slate-300 px-2 py-1"
+          >
+            <Text>Create New Budget</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={()=> router.push({pathname:"/createBudget", params:{id:budget?.id, mode:"edit"}})}
+            className="border rounded-md bg-slate-300 px-2 py-1"
+          >
+            <Text>Modify</Text>
+          </TouchableOpacity>
+         
         </View>
-        {budget?.incomes.map((income, index)=>(
-          <View className="flex flex-row justify-evenly" key={index}>
-            <Text>{income?.category}</Text>
-            <Text>{income?.amount}</Text>
+
+        <View>
+          <Text className="text-left font-bold text-lg">Savings</Text>
+          <View className="flex flex-row justify-evenly">
+            <Text className="font-bold">Category</Text>
+            <Text  className="font-bold">Amount</Text>
           </View>
-        ))}
-        <Text className="text-left font-bold text-lg">Expenses</Text>
-         <View className="flex flex-row justify-evenly">
-          <Text className="font-bold">Category</Text>
-          <Text  className="font-bold">Amount</Text>
+          <ScrollView>
+            {budget?.savings.map((expense, index)=>(
+                  <View className="flex flex-row justify-evenly"  key={index}>
+                    <Text>{expense?.category}</Text>
+                    <Text>{expense?.amount}</Text>
+                  </View>
+            ))}   
+          </ScrollView>
         </View>
-        {budget?.expense.map((expense, index)=>(
-          <View className="flex flex-row justify-evenly" key={index}>
-            <Text>{expense?.category}</Text>
-            <Text>{expense?.amount}</Text>
+
+        <View>
+          <Text className="text-left font-bold text-lg" >Incomes</Text>
+          <View className="flex flex-row justify-evenly">
+            <Text className="font-bold">Category</Text>
+            <Text className="font-bold">Amount</Text>
           </View>
-        ))}
+          <ScrollView>
+            {budget?.incomes.map((income, index)=>(
+                <View className="flex flex-row justify-evenly" key={index} >
+                  <Text>{income?.category}</Text>
+                  <Text>{income?.amount}</Text>
+                </View>
+            ))} 
+          </ScrollView>
+        </View>
+        
+        <View>
+          <Text className="text-left font-bold text-lg">Expenses</Text>
+          <View className="flex flex-row justify-evenly">
+            <Text className="font-bold">Category</Text>
+            <Text  className="font-bold">Amount</Text>
+          </View>
+          <ScrollView >
+            {budget?.expense.map((expense, index)=>(
+                <View className="flex flex-row justify-evenly"key={index} >
+                  <Text>{expense?.category}</Text>
+                  <Text>{expense?.amount}</Text>
+                </View>
+            ))}
+          </ScrollView>
+        </View>
+        
       </View>
     </SafeAreaView>
   );

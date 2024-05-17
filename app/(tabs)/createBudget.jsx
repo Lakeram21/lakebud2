@@ -3,12 +3,20 @@ import { View, Text, ScrollView, TouchableOpacity, TextInput, Modal, Button, Ale
 import uuid from 'react-native-uuid'
 import { SafeAreaView } from "react-native-safe-area-context";
 import DateTimePicker from "@react-native-community/datetimepicker"
-import {createBudget} from "../../API/budget"
+import {createBudget, getBudgetById} from "../../API/budget"
 import {createExpense} from "../../API/expense"
 import {router} from "expo-router"
+import {useLocalSearchParams, useFocusEffect} from "expo-router"
 
 const CreateBudget = () => {
-  const [totalIncome, setTotalIncome] = useState("");
+
+  // These are for creating a budget from a template
+  const params = useLocalSearchParams()
+
+
+  // These are for modifying the current Budget
+  const [editMode, seteditMode] = useState(false);
+  
 
   // budget varibles
   const [errors, setErrors] = useState({});
@@ -20,8 +28,6 @@ const CreateBudget = () => {
   const [editAmount, setEditAmount] = useState(null)
   const [editId, setEditId] = useState(null)
   const [editType, setEditType] = useState(null)
-
-
 
   // Form Data
   const [incomes, setIncomes] = useState([]);
@@ -125,7 +131,6 @@ const CreateBudget = () => {
         unbudgetedAmount: unbudgetedAmount
       }
 
-    
       try{
         const result = await createBudget(budgetObject)
         // We create the actual spending with the budget so that we can keep track 
@@ -139,6 +144,7 @@ const CreateBudget = () => {
         }
 
         let modifiedExpenses = expenses.map(expense=>{
+          expense["Remaining"] = 0
           const modifiedExpense = {...expense, ...additionalproperties}
           return modifiedExpense
 
@@ -215,12 +221,42 @@ const CreateBudget = () => {
     validateData()
   }, [budgetName, incomes, expenses, startDate, endDate])
 
+
+  // This is used to fill up the template if the budget is created based on a template
+  useFocusEffect(
+        React.useCallback(() => {
+          if(params?.id){
+            getBudgetById(params.id)
+            .then((res)=>{
+              // And we just need to set the expense, income and savings
+              // everything else will be set for the new budget
+              // we do have unique ids in the expense that will be used back but
+              // because they are contained within the budget, we shoud be good
+              setExpenses(res.expense)
+              setIncomes(res.incomes)
+              setSavings(res.savings)
+              if(params?.mode == 'edit'){
+                  seteditMode(true)
+                  setBudgetName(res.name)
+                  setstartDate(res.startDate)
+                  setEndDate(res.endDate)
+              }
+            }).catch((err)=>{
+              console.log(err)
+            })
+          }
+         
+          return () => {
+            console.log('Screen is unfocused');
+          };
+        }, [params.id])
+      );
+  
   return (
     <SafeAreaView>
-      
+
       <View className="p-4">
         <View className="bg-gray-100 rounded-lg p-4 justify-between">
-          
           <View>
               <Text className="text-lg font-semibold mb-2">Budget Summary</Text>
               <Text>Total Income: ${incomes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)}</Text>
@@ -234,7 +270,10 @@ const CreateBudget = () => {
                 className="text-center"
                 onPress={() => setCreateBudgetModalVisible(true)}
               >
-                  <Text className="text-2xl text-blue font-bold">Create Budget</Text>
+                {
+                  editMode ? <Text className="text-2xl text-blue font-bold">Modify Budget</Text>:<Text className="text-2xl text-blue font-bold">Create Budget</Text>
+                }
+                  
               </TouchableOpacity>
           </View>
           <View className="flex-row justify-between">

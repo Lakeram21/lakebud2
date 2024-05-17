@@ -59,8 +59,8 @@ const ViewExpense = () => {
         {categories.map((element, index) => {
           if (element.category) {
             const budgetCategory = budCategories[element.id];
-            const overspent = element.amount < 0;
-            const remaining = overspent ? -element.amount : element.amount;
+            const overspent = element.Remaining < 0;
+            const remaining = overspent ? - element.Remaining : element.Remaining;
             const categoryExpensesData = element.items.map((item, idx) => (
               <View className="flex flex-row justify-between border-b border-gray-200" key={idx}>
                 <Text className="flex-1 p-4">{item.name}</Text>
@@ -77,7 +77,7 @@ const ViewExpense = () => {
                     <Text className="bg-slate-500 rounded-full px-3 py-1 text-white">Budgeted: ${budgetCategory.amount}</Text>
                   </View>
                   <View className="flex flex-row justify-between items-center mt-2">
-                    <Text className="bg-green-500 px-3 py-1">Spent: ${budgetCategory.amount - element.amount}</Text>
+                    <Text className="bg-green-500 px-3 py-1">Spent: ${budgetCategory.amount - element.Remaining}</Text>
                     <Text className={`rounded-full px-3 py-1 text-white ${overspent ? 'bg-red-400' : 'bg-green-400'}`}>
                       {overspent ? 'Overspent: $' : 'Remaining: $'}{remaining}
                     </Text>

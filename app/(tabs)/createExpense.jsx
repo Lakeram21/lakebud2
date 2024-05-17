@@ -28,14 +28,14 @@ const CreateExpense = () => {
 
   const handleExpenseAdder = async()=>{
     try{
-    console.log("this is curretn amiout: ",currentCategoryAmount)
+    console.log("this is current amiout: ",currentCategoryAmount)
     let categoryRemainingAmount = parseFloat(currentCategoryAmount) - parseFloat(amount)
     console.log("Here", category)
     budget?.expense.map((element)=>{
       if(category && category != "Other"){
         if(element?.category === category){
           console.log(element)
-          element.amount = categoryRemainingAmount
+          element['Remaining'] = categoryRemainingAmount
           element.items.push(
             {
               merchant,

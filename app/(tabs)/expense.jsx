@@ -73,8 +73,8 @@ const Expenses = () => {
             if(element.category){
               let budgetCategory = budCategories[element?.id]
               let overspent = false
-              let remaining = element?.amount
-              if(element?.amount < 0){
+              let remaining = element?.Remaining
+              if(element?.Remaining < 0){
                 overspent = true
                 remaining =remaining*-1
               }
@@ -85,7 +85,7 @@ const Expenses = () => {
               <View className="flex flex-row border rounded-lg p-2" key={index}>
                 <Text className="flex-1 bg-slate-300 p-4">{element?.category}</Text>
                 <Text className="flex-1 bg-green-500 p-4">Budgeted: ${budgetCategory?.amount}</Text>
-                <Text className="flex-1 bg-green-300 p-4">Spent: ${budgetCategory?.amount - element?.amount}</Text>
+                <Text className="flex-1 bg-green-300 p-4">Spent: ${budgetCategory?.amount - element?.Remaining}</Text>
                 {overspent ? (
                   <Text className="flex-1 bg-red-400 p-4">Overspent: ${remaining}</Text>
                 ) : (
