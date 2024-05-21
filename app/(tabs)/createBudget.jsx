@@ -418,19 +418,16 @@ const CreateBudget = () => {
           
           </View>
 
-          <View className="flex flex-row gap-2">
-            <View className="px-2 bg-green-600 rounded-md  items-center justify-center">
-                <TouchableOpacity
-                  className=""
+          <View className="flex flex-row gap-2 border rounded-md border-gray-300">
+           <TouchableOpacity className="px-2 bg-green-600 rounded-md  items-center justify-center"                
                   onPress={() => setCreateBudgetModalVisible(true)}
                 >
                   {
                     editMode ? <Text className="text-white text-xl text-blue font-bold">Modify Budget</Text>:<Text className="text-white text-xl text-blue font-bold">Create Budget</Text>
                   }
                     
-                </TouchableOpacity>
-            </View>
-            <View className="gap-2 flex-1">
+            </TouchableOpacity>
+            <View className="gap-2 flex-1  justify-center p-2 rounded-md">
                    <TouchableOpacity
                       className="py-2 bg-green-500 rounded items-center justify-center"
                       onPress={() => setIncomeModalVisible(true)}
@@ -453,7 +450,7 @@ const CreateBudget = () => {
           </View>
 
        
-          <View className="border rounded-md p-4">
+          <View className="border rounded-md p-4 border-gray-300">
               <Text className="text-left mb-4 font-semibold">Savings</Text>
               <ScrollView>
                   {savings.map((saving, index) => (
@@ -470,7 +467,7 @@ const CreateBudget = () => {
               
           </View>
 
-          <View className='border rounded-md p-4'>
+          <View className='border rounded-md p-4 border-gray-300'>
             <Text className="text-left mb-4 font-semibold">Income</Text>
             <ScrollView>
                 {incomes.map((income, index) => (
@@ -488,7 +485,7 @@ const CreateBudget = () => {
             </ScrollView>
           </View>
 
-          <View className='border rounded-md p-4'>
+          <View className='border rounded-md p-4 border-gray-300'>
             <Text className="text-left mb-4 font-semibold">Expenses</Text>
             <ScrollView>
               {expenses.map((expense, index) => (
