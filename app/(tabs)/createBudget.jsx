@@ -115,24 +115,33 @@ const CreateBudget = () => {
     setErrors(errors)
     setIsFormValid(Object.keys(errors).length === 0)
   }
+
   // Create Budget Handler used for new Budget creation and creation from template
   const createBudgetHandler = async()=>{
     const unbudgetedAmount = incomes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - savings.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)
-  
+    
+    // Set the rest of the unbudgeted to savings
+    const id = uuid.v4()
+    let category = "Unbudgeted"
+    let amount = unbudgetedAmount
+    const newSaving = { category, amount, id};
+    
+    let _savings = [...savings, newSaving];
+    console.log(_savings)
     if(isFormValid){
       const budgetObject = {
         incomes,
         expenses,
-        savings,
+        savings: _savings,
         startDate,
         endDate,
         budgetName,
-        status:"pending",
-        unbudgetedAmount: unbudgetedAmount
+        status:"pending"
       }
-
+      console.log(budgetObject)
       try{
         const result = await createBudget(budgetObject)
+        console.log(result)
         // We create the actual spending with the budget so that we can keep track 
         // from the start
         const newBudgetId = result.success.id
@@ -331,127 +340,193 @@ const CreateBudget = () => {
 
 
   // This is used to fill up the template if the budget is created based on a template
-  useFocusEffect(
-        React.useCallback(() => {
-          if(params?.id){
-            getBudgetById(params.id)
-            .then((res)=>{
-              // And we just need to set the expense, income and savings
-              // everything else will be set for the new budget
-              // we do have unique ids in the expense that will be used back but
-              // because they are contained within the budget, we shoud be good
-              setExpenses(res.expense)
-              setIncomes(res.incomes)
-              setSavings(res.savings)
-              if(params?.mode == 'edit'){
-
-                  // Set the Budget that is being edited
-                  setEditingBudget(res)
-
-
-
-                  seteditMode(true)
-                  setBudgetName(res.name)
+  // useFocusEffect(
+  //       React.useCallback(() => {
+  //         if(params.id){
+            
+  //           getBudgetById(params.id)
+  //           .then((res)=>{
+  //             // And we just need to set the expense, income and savings
+  //             // everything else will be set for the new budget
+  //             // we do have unique ids in the expense that will be used back but
+  //             // because they are contained within the budget, we shoud be good
+  //             setExpenses(res.expense)
+  //             setIncomes(res.incomes)
+  //             setSavings(res.savings)
+  //             if(params.mode == 'edit'){
+  //                 console.log("Editing mode")
+  //                 // Set the Budget that is being edited
+  //                 setEditingBudget(res)
+  //                 seteditMode(true)
+  //                 setBudgetName(res.name)
                  
-                  let start = res.startDate
-                  let _startDate = new Date(start.seconds * 1000)
-                  setstartDate(_startDate)
-                  let end = res.endDate
-                  let _endDate = new Date(end.seconds *1000)
-                  setEndDate(_endDate)
+  //                 let start = res.startDate
+  //                 let _startDate = new Date(start.seconds * 1000)
+  //                 setstartDate(_startDate)
+  //                 let end = res.endDate
+  //                 let _endDate = new Date(end.seconds *1000)
+  //                 setEndDate(_endDate)
 
-                  // Get actual Budget whene the expenses are stored
-                  getActualExpense(params?.id)
-                  .then((res)=>{
-                    setEditingActualBudget(res)
-                  }).catch((err)=>{
-                    console.log(err)
-                  })
+  //                 // Get actual Budget whene the expenses are stored
+  //                 getActualExpense(params?.id)
+  //                 .then((res)=>{
+  //                   setEditingActualBudget(res)
+  //                 }).catch((err)=>{
+  //                   console.log(err)
+  //                 })
 
-              }
-            }).catch((err)=>{
-              console.log(err)
-            })
+  //             }
+  //             else{
+  //               console.log("Creating mode")
+  //               setEditingBudget(null)
+  //               seteditMode(false)
+  //               setBudgetName("")
+
+  //             }
+  //           }).catch((err)=>{
+  //             console.log(err)
+  //           })
+  //         }
+  //         else
+  //         {
+  //           seteditMode(false)
+  //           setEditingActualBudget(null)
+  //           setEditingBudget(null)
+  //           setErrors({})
+  //           setIsFormValid(false)
+
+  //           setEditCategory(null)
+  //           setEditAmount(null)
+  //           setEditId(null)
+  //           setEditType(null)
+
+  //           setIncomes([])
+  //           setExpenses([])
+  //           setSavings([])
+
+  //           setBudgetName("")
+  //           setEndDate(new Date())
+  //           setstartDate(new Date())
+  //         }
+  //         return () => {
+  //           console.log('Screen is unfocused');
+  //         };
+  //       }, [params?.id, editMode])
+  //     );
+  useFocusEffect(
+  React.useCallback(() => {
+    if (params.id) {
+      getBudgetById(params.id)
+        .then((res) => {
+          setExpenses(res.expense);
+          setIncomes(res.incomes);
+          setSavings(res.savings);
+
+          if (params.mode === 'edit') {
+            console.log("Editing mode");
+            setEditingBudget(res);
+            seteditMode(true);
+            setBudgetName(res.name);
+
+            const startDate = new Date(res.startDate.seconds * 1000);
+            setstartDate(startDate);
+            const endDate = new Date(res.endDate.seconds * 1000);
+            setEndDate(endDate);
+
+            getActualExpense(params.id)
+              .then((res) => {
+                setEditingActualBudget(res);
+              })
+              .catch((err) => {
+                console.log(err);
+              });
+
+          } else {
+            console.log("Creating mode");
+            setEditingBudget(null);
+            seteditMode(false);
+            setBudgetName("");
           }
-          else
-          {
-            seteditMode(false)
-            setEditingActualBudget(null)
-            setEditingBudget(null)
-            setErrors({})
-            setIsFormValid(false)
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } else {
+      seteditMode(false);
+      setEditingActualBudget(null);
+      setEditingBudget(null);
+      setErrors({});
+      setIsFormValid(false);
 
-            setEditCategory(null)
-            setEditAmount(null)
-            setEditId(null)
-            setEditType(null)
+      setEditCategory(null);
+      setEditAmount(null);
+      setEditId(null);
+      setEditType(null);
 
-            setIncomes([])
-            setExpenses([])
-            setSavings([])
+      setIncomes([]);
+      setExpenses([]);
+      setSavings([]);
 
-            setBudgetName("")
-            setEndDate(new Date())
-            setstartDate(new Date())
-          }
-          return () => {
-            console.log('Screen is unfocused');
-          };
-        }, [params?.id])
-      );
+      setBudgetName("");
+      setEndDate(new Date());
+      setstartDate(new Date());
+    }
+
+    return () => {
+      console.log('Screen is unfocused');
+    };
+  }, [params?.id, params?.mode]) // Make sure the dependency list is correct
+);
   
   return (
     <KeyboardAvoidingView>
       <SafeAreaView>
         <View className="p-4 gap-2">
-          <Text className="text-lg font-semibold mb-2">Budget Summary</Text>
-          <View className="flex-row justify-between mb-2">
-            <View className="flex-shrink">
-                <Text>Total Income: ${incomes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)}</Text>
-                <Text>Total Expenses: ${expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)}</Text>
-                <Text>Remaining Budget: ${
+          <View className="justify-between mb-2 border border-green-400 bg-green-200 rounded-md">
+            <Text className="text-lg text-green-900 font-semibold bg-green-400 px-1">Budget Summary</Text>
+            <View className="flex-shrink p-2">
+                <Text><Text className="font-semibold text-green-800">Total Income:</Text> ${incomes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)}</Text>
+                <Text><Text className="font-semibold text-green-800" >Total Expenses:</Text> ${expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)}</Text>
+                <Text><Text className="font-semibold text-green-800">Remaining Budget:</Text> ${
                 incomes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - savings.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)
                 }</Text>
             </View>
-
-            
-          
           </View>
 
-          <View className="flex flex-row gap-2 border rounded-md border-gray-300">
-           <TouchableOpacity className="px-2 bg-green-600 rounded-md  items-center justify-center"                
+          <View className="flex-row justify-between rounded-md">
+           <TouchableOpacity className="px-2 border bg-green-300 border-green-500 shadow-sm shadow-green-400 rounded-md  items-center justify-center"                
                   onPress={() => setCreateBudgetModalVisible(true)}
                 >
                   {
-                    editMode ? <Text className="text-white text-xl text-blue font-bold">Modify Budget</Text>:<Text className="text-white text-xl text-blue font-bold">Create Budget</Text>
+                    editMode ? <Text className="text-green-900 text-xl text-blue font-bold">Modify Budget</Text>:<Text className="text-green-900 text-xl text-blue font-bold">Create Budget</Text>
                   }
                     
             </TouchableOpacity>
-            <View className="gap-2 flex-1  justify-center p-2 rounded-md">
+            <View className=" gap-1 rounded-md">
                    <TouchableOpacity
-                      className="py-2 bg-green-500 rounded items-center justify-center"
+                      className="py-2 px-8 bg-green-300 border border-green-500 rounded items-center justify-center shadow-sm shadow-green-400"
                       onPress={() => setIncomeModalVisible(true)}
                     >
-                      <Text className="text-white">Add Income</Text>
+                      <Text className="text-green-900 font-semibold">Add Income</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      className="py-2 bg-green-500 rounded items-center justify-center"
+                      className="py-2 bg-green-300 border border-green-500 rounded items-center justify-center shadow-sm shadow-green-400"
                       onPress={() => setExpenseModalVisible(true)}
                     >
-                      <Text className="text-white">Add Expense</Text>
+                      <Text className="text-green-900 font-semibold">Add Expense</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      className="py-2 bg-green-500 rounded items-center justify-center"
+                      className="py-2 bg-green-300 border border-green-500 rounded items-center justify-center shadow-sm shadow-green-400"
                       onPress={() => setSavingsModalVisible(true)}
                     >
-                      <Text className="text-white">Add Savings</Text>
+                      <Text className="text-green-900 font-semibold">Add Savings</Text>
                     </TouchableOpacity>
             </View>
           </View>
 
        
-          <View className="border rounded-md p-4 border-gray-300">
-              <Text className="text-left mb-4 font-semibold">Savings</Text>
+          <View className="border-b border-green-400 bg-green-100 p-4">
+              <Text className="text-green-800 text-left mb-4 font-semibold">Savings</Text>
               <ScrollView>
                   {savings.map((saving, index) => (
                   <TouchableOpacity
@@ -467,8 +542,8 @@ const CreateBudget = () => {
               
           </View>
 
-          <View className='border rounded-md p-4 border-gray-300'>
-            <Text className="text-left mb-4 font-semibold">Income</Text>
+          <View className="border-b border-green-400 bg-green-100 p-4">
+            <Text className="text-left text-green-800 mb-4 font-semibold">Income</Text>
             <ScrollView>
                 {incomes.map((income, index) => (
                   <TouchableOpacity 
@@ -485,8 +560,8 @@ const CreateBudget = () => {
             </ScrollView>
           </View>
 
-          <View className='border rounded-md p-4 border-gray-300'>
-            <Text className="text-left mb-4 font-semibold">Expenses</Text>
+          <View className="border-b border-green-400 bg-green-100 p-4">
+            <Text className="text-left text-green-800 mb-4 font-semibold">Expenses</Text>
             <ScrollView>
               {expenses.map((expense, index) => (
                 <TouchableOpacity

@@ -1,134 +1,161 @@
 import React, { useState } from "react";
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView } from "react-native";
-import {router, useFocusEffect} from "expo-router"
+import {
+  View,
+  Text,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+  ImageBackground,
+} from "react-native";
+import { router, useFocusEffect } from "expo-router";
 import { getCurrentBudget } from "../../API/budget";
-import {getActualExpense} from "../../API/expense"
+import { getActualExpense } from "../../API/expense";
+import background from "../../assets/janke-laskowski-jz-ayLjk2nk-unsplash.jpg";
 
-const Expenses = () => {
+const Expense = () => {
   const [budget, setBudget] = useState(null);
-  const [categories, setcategories] = useState([]);
-  const [budCategories, setBudCategories] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [budCategories, setBudCategories] = useState({});
 
   useFocusEffect(
     React.useCallback(() => {
-      getCurrentBudget("Active")
-        .then((res) => {
-          if(res) {
-            let cateDic = {}
-            let budCategories_ = res.expense?.map((element)=>{
-              if(element.amount !=""){
-                    cateDic[element.id] = element
-                    return element
-                  }
-            })
+      const fetchData = async () => {
+        try {
+          const res = await getCurrentBudget("Active");
+          console.log(res)
+          if (res) {
+            const cateDic = {};
+            res.expense?.forEach((element) => {
+              if (element.amount !== "") {
+                cateDic[element.id] = element;
+              }
+            });
+            setBudCategories(cateDic);
 
-            setBudCategories(cateDic)
+            const expenseRes = await getActualExpense(res.id);
+            console.log(expenseRes)
+            setBudget(expenseRes);
 
-            // Get actual Expense budget
-            getActualExpense(res.id).then((res)=>{
-              setBudget(res);
-              
-              //set the category amount
-              let categories = res.expense?.map((element)=>{
-                  if(element.amount !=""){
-                    return element
-                  }
-              })
-              setcategories(categories)
-            })
+            const categoryData = expenseRes.expense?.filter(
+              (element) => element?.amount !== ""
+            );
+            setCategories(categoryData);
           }
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-      return () => {
-        console.log('Screen is unfocused');
+        } catch (err) {
+          console.log("this",err);
+        }
       };
+
+      fetchData();
+      return () => console.log("Screen is unfocused");
     }, [])
   );
 
   return (
-    <SafeAreaView className="flex-1 gap-4">
-        <View className='flex flex-row justify-between p-4'>
-            <TouchableOpacity
-            className="border rounded px-4 py-6 bg-green-200"
-            onPress={()=>router.push("/viewExpense")}
-            >
-              <Text>View all Expenses</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-            className="border rounded px-4 py-6 bg-green-200"
-              onPress={()=>router.push("/createExpense")}
-            >
-              <Text>Add New Expense</Text>
-            </TouchableOpacity>
-        </View>
+    // <ImageBackground source={background} className="flex-1 justify-center">
+      <SafeAreaView className="flex-1">
         <View className="p-4">
-          <View className="gap-2 mb-2">
-            <Text>Total Budgeted: </Text>
-            <Text>Total Spent: </Text>
-            <Text>Total Remaining: </Text>
-            <Text>Total Overspent:</Text>
-          </View>
-          <ScrollView >
-            <View className="gap-4">
-            {categories?.map((element, index)=>{
-              console.log(element)
-              if(element.category){
-                let budgetCategory = budCategories[element?.id]
-                let overspent = false
-                let remaining = element?.Remaining
-                if(element?.Remaining < 0){
-                  overspent = true
-                  remaining =remaining*-1
-                }
-                return (
+          <Text className="text-center text-2xl font-bold">All Expenses</Text>
+        </View>
+        <ScrollView className="p-4 mb-24">
+          <View className="gap-4">
+            {categories?.map((element, index) => {
+              if (element.category){
+
+              const budgetCategory = budCategories[element.id];
+              const overspent = element.Remaining < 0;
+              const remaining = Math.abs(element.Remaining);
+              const categoryExpensesData = element.items?.map((item, idx) => (
+                <View
+                  className="flex flex-row justify-between border-b border-gray-200 p-4"
+                  key={idx}
+                >
+                  <Text className="flex-1">{item?.name}</Text>
+                  <Text className="flex-1">${item?.amount}</Text>
+                  <Text className="flex-1">{item?.merchant}</Text>
+                </View>
+              ));
+                
+
+              return (
                 <TouchableOpacity key={index}>
-                  <View className="flex flex-col border rounded-lg p-4">
+                  <View className="flex flex-col border-b border-l p-4 bg-green-100   border-green-400 shadow-sm">
                     <View className="flex flex-row justify-between items-center">
-                      <Text className="text-lg font-bold">{element.category}</Text>
-                      <Text className="bg-slate-500 rounded-full px-3 py-1 text-white">Budgeted: ${budgetCategory.amount}</Text>
+                      <Text className="text-lg font-bold">
+                        {element.category}
+                      </Text>
+                      <Text className="bg-slate-500 rounded-full px-3 py-1 text-white">
+                        Budgeted: ${budgetCategory.amount}
+                      </Text>
                     </View>
                     <View className="flex flex-row justify-between items-center mt-2">
-                      <Text className="bg-green-500 px-3 py-1">Spent: ${budgetCategory.amount - element.Remaining}</Text>
-                      <Text className={`rounded-full px-3 py-1 text-white ${overspent ? 'bg-red-400' : 'bg-green-400'}`}>
-                        {overspent ? 'Overspent: $' : 'Remaining: $'}{remaining}
+                      <Text className="bg-green-500 px-3 py-1 text-white">
+                        Spent: ${budgetCategory.amount - element.Remaining}
+                      </Text>
+                      <Text
+                        className={`rounded-full px-3 py-1 text-white ${
+                          overspent ? "bg-red-400" : "bg-green-600"
+                        }`}
+                      >
+                        {overspent ? "Overspent: $" : "Remaining: $"}
+                        {remaining}
                       </Text>
                     </View>
                   </View>
-                </TouchableOpacity> )
+                  <View className="mt-4">
+                    <View className="flex flex-row justify-between border-b border-gray-200 px-4">
+                      <Text className="text-lg font-semibold">Name</Text>
+                      <Text className="text-lg font-semibold">Amount</Text>
+                      <Text className="text-lg font-semibold">Merchant</Text>
+                    </View>
+                    {categoryExpensesData}
+                  </View>
+                </TouchableOpacity>
+              );
               }
-              if(element.outSideExpenses){
-                let outSideExpenses = element.outSideExpenses
-                let price = 0
-                outSideExpenses.map((item, index)=>{
-                  console.log(item.amount)
-                  price = price + parseFloat(item.amount)
-                })
-                return(
+              if (element.outSideExpenses) {
+              const price = element.outSideExpenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0);
+              const categoryExpensesData = element.outSideExpenses?.map((item, idx) => (
+                <View className="flex flex-row justify-between border-b border-gray-200" key={idx}>
+                  <Text className="flex-1 p-4">{item?.name}</Text>
+                  <Text className="flex-1 p-4">${item?.amount}</Text>
+                  <Text className="flex-1 p-4">{item?.merchant}</Text>
+                </View>))
+
+                  return (
                   <TouchableOpacity key={index}>
-                    <View className="flex flex-row border rounded-lg p-2">
-                      <Text className="flex-1 bg-slate-300 p-4">Outside of Budget Expense:</Text>
-                      <Text className="flex-1 bg-red-400 p-4 text-center text-lg">${price}</Text>
+                    <View className="flex flex-row justify-between border-b border-l p-4 bg-red-200 border-red-400">
+                      <Text className="text-lg text-slate-800 font-bold">Outside of Budget Expense:</Text>
+                      <Text className="bg-red-400 rounded-full px-3 py-1 text-white text-lg">${price}</Text>
+                    </View>
+                    <View className="mt-4">
+                      <View className="flex flex-row justify-between border-b border-gray-200  px-4">
+                        <Text className="text-lg font-semi-bold">Name</Text>
+                        <Text className="text-lg font-semi-bold">Amount</Text>
+                        <Text className="text-lg font-semi-bold">Merchant</Text>
+                      </View>
+                      {categoryExpensesData}
                     </View>
                   </TouchableOpacity>
-                )
-              }
+                );
+              } 
+
             })}
-            </View>
-          </ScrollView>
-        {/* <View className="items-center bg-slate-500 py-4">
-           <PieChart
-            widthAndHeight={widthAndHeight}
-            series={series}
-            sliceColor={sliceColor}
-            coverRadius={0.60}
-            coverFill={'#FFF'}
-          />
-        </View> */}
-        </View>
-    </SafeAreaView>
+          </View>
+        </ScrollView>
+       <View className="absolute bottom-0 left-0 right-0 p-4 bg-transparent">
+        <TouchableOpacity
+        onPress={()=> router.push("/createExpense")}
+        >
+          <View className="border rounded-lg bg-green-300 px-6 py-4 border-green-500 shadow-sm shadow-green-400">
+            <Text className="text-center text-green-900 font-semibold text-lg">Add Expense</Text>
+          </View>
+        </TouchableOpacity>
+        
+      </View>
+      </SafeAreaView>
+    // </ImageBackground>
   );
 };
 
-export default Expenses;
+export default Expense;

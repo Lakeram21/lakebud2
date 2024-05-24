@@ -21,8 +21,7 @@ export const createBudget = async (data) => {
        endDate: data.endDate,
        name: data.budgetName,
        status: data.status,
-       user: userId,
-       unbudgetedAmount:data.unbudgetedAmount
+       user: userId
       });
       return {"success": newBudget};
 
