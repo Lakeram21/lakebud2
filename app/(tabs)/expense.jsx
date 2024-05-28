@@ -130,9 +130,9 @@ const Expense = () => {
                     </View>
                     <View className="mt-4">
                       <View className="flex flex-row justify-between border-b border-gray-200  px-4">
-                        <Text className="text-lg font-semi-bold">Name</Text>
-                        <Text className="text-lg font-semi-bold">Amount</Text>
-                        <Text className="text-lg font-semi-bold">Merchant</Text>
+                        <Text className="text-lg font-semibold">Name</Text>
+                        <Text className="text-lg font-semibold">Amount</Text>
+                        <Text className="text-lg font-semibold">Merchant</Text>
                       </View>
                       {categoryExpensesData}
                     </View>

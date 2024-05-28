@@ -205,12 +205,21 @@ const CreateBudget = () => {
     try {
       console.log("editing budget")
       const unbudgetedAmount = incomes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0) - savings.reduce((acc, curr) => acc + parseFloat(curr.amount), 0)
-  
+      
+        // Set the rest of the unbudgeted to savings
+      const id = uuid.v4()
+      let category = "Unbudgeted"
+      let amount = unbudgetedAmount
+      const newSaving = { category, amount, id};
+      
+      let _savings = [...savings, newSaving];
+      console.log(_savings)
+
       if(isFormValid){
         const budgetObject = {
           incomes,
           expense:expenses,
-          savings,
+          savings: _savings,
           startDate,
           endDate,
           name:budgetName,
@@ -309,11 +318,11 @@ const CreateBudget = () => {
 
   const editItem = (operation)=>{
     let type = editType
-    if (operation === "edit") {
-      const targetArray = type === "expense" ? expenses :
+    const targetArray = type === "expense" ? expenses :
                         type === "income" ? incomes :
                         type === "saving" ? savings : [];
-
+    if (operation === "edit") {
+      
       targetArray.forEach(item => {
         if (item.id === editId) {
           item.amount = editAmount;
@@ -321,6 +330,18 @@ const CreateBudget = () => {
         }
       });
     }
+    else if (operation === "remove") {
+        const newArray = targetArray.filter(item => item.id !== editId);
+        if(type === "expense"){
+          setExpenses(newArray)
+        }
+        else if(type === "income"){
+          setIncomes(newArray)
+        }
+        else if(type === "saving"){
+          setSavings(newArray)
+        }
+      }
     setEditModalVisible(false)
     console.log(expenses)
 
@@ -413,6 +434,8 @@ const CreateBudget = () => {
   //         };
   //       }, [params?.id, editMode])
   //     );
+  
+  
   useFocusEffect(
   React.useCallback(() => {
     if (params.id) {
@@ -734,7 +757,7 @@ const CreateBudget = () => {
                 />
                 <View className="flex flex-row justify-evenly">
                   <Button title="Change" onPress={()=>editItem("edit")}/>
-                  <Button title="Remove" onPress={() => setEditModalVisible(false)} />
+                  <Button title="Remove" onPress={() =>editItem("remove")} />
                   <Button title="Close" onPress={() => setEditModalVisible(false)} />
                 </View>
                 
