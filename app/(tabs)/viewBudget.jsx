@@ -69,7 +69,7 @@ const ViewBudget = () => {
             onPress={() => router.push({ pathname: "/createBudget", params: { id: budget?.id } })}
             className="border border-green-400 bg-green-300 p-2 rounded-md"
           >
-            <Text className="text-center text-slate-600 font-semibold">Create New Budget</Text>
+            <Text className="text-center text-slate-600 font-semibold">Create New Budget from template</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => router.push({ pathname: "/createBudget", params: { id: budget?.id, mode: "edit" } })}

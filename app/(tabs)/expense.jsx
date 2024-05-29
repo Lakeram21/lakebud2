@@ -55,7 +55,11 @@ const Expense = () => {
     // <ImageBackground source={background} className="flex-1 justify-center">
       <SafeAreaView className="flex-1">
         <View className="p-4">
-          <Text className="text-center text-2xl font-bold">All Expenses</Text>
+          <View className="border rounded-md p-2 mt-2">
+            <Text className="text-lg font-semibold">Total Budgeted:</Text>
+            <Text className="text-lg font-semibold">Total Spent:</Text>
+            <Text className="text-lg font-semibold">Total Remaining:</Text>
+          </View>
         </View>
         <ScrollView className="p-4 mb-24">
           <View className="gap-4">
@@ -79,7 +83,7 @@ const Expense = () => {
 
               return (
                 <TouchableOpacity key={index}>
-                  <View className="flex flex-col border-b border-l p-4 bg-green-100   border-green-400 shadow-sm">
+                  <View className="flex flex-col border-b p-4 bg-green-100   border-green-400 shadow-sm">
                     <View className="flex flex-row justify-between items-center">
                       <Text className="text-lg font-bold">
                         {element.category}
@@ -124,7 +128,7 @@ const Expense = () => {
 
                   return (
                   <TouchableOpacity key={index}>
-                    <View className="flex flex-row justify-between border-b border-l p-4 bg-red-200 border-red-400">
+                    <View className="flex flex-row justify-between border-b p-4 bg-red-200 border-red-400">
                       <Text className="text-lg text-slate-800 font-bold">Outside of Budget Expense:</Text>
                       <Text className="bg-red-400 rounded-full px-3 py-1 text-white text-lg">${price}</Text>
                     </View>
